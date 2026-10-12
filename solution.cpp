@@ -1,4 +1,4 @@
-#include <iostream>
+#include <cstdio>
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
@@ -7,16 +7,27 @@ using namespace std;
 
 class UnionFind {
 private:
-    unordered_map<int, int> parent;
-    unordered_map<int, int> rank;
+    vector<int> parent;
+    vector<int> rank;
     
 public:
-    int find(int x) {
-        if (parent.find(x) == parent.end()) {
-            parent[x] = x;
-            rank[x] = 0;
-            return x;
+    UnionFind(int size = 0) {
+        parent.resize(size);
+        rank.resize(size, 0);
+        for (int i = 0; i < size; i++) {
+            parent[i] = i;
         }
+    }
+    
+    void resize(int size) {
+        parent.resize(size);
+        rank.resize(size, 0);
+        for (int i = 0; i < size; i++) {
+            parent[i] = i;
+        }
+    }
+    
+    int find(int x) {
         if (parent[x] != x) {
             parent[x] = find(parent[x]);
         }
@@ -41,34 +52,40 @@ public:
     bool same(int x, int y) {
         return find(x) == find(y);
     }
-    
-    void clear() {
-        parent.clear();
-        rank.clear();
-    }
 };
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-    
     int t;
-    cin >> t;
+    scanf("%d", &t);
     
     while (t--) {
         int n;
-        cin >> n;
+        scanf("%d", &n);
         
         vector<pair<pair<int, int>, int>> constraints;
         constraints.reserve(n);
         
+        vector<int> vars;
+        vars.reserve(n * 2);
+        
         for (int i = 0; i < n; i++) {
             int a, b, e;
-            cin >> a >> b >> e;
+            scanf("%d %d %d", &a, &b, &e);
             constraints.push_back({{a, b}, e});
+            vars.push_back(a);
+            vars.push_back(b);
         }
         
-        UnionFind uf;
+        // Coordinate compression
+        sort(vars.begin(), vars.end());
+        vars.erase(unique(vars.begin(), vars.end()), vars.end());
+        
+        unordered_map<int, int> coord;
+        for (int i = 0; i < vars.size(); i++) {
+            coord[vars[i]] = i;
+        }
+        
+        UnionFind uf(vars.size());
         
         // Process all equality constraints first
         for (const auto& constraint : constraints) {
@@ -77,7 +94,7 @@ int main() {
             int e = constraint.second;
             
             if (e == 1) {
-                uf.unite(a, b);
+                uf.unite(coord[a], coord[b]);
             }
         }
         
@@ -89,14 +106,14 @@ int main() {
             int e = constraint.second;
             
             if (e == 0) {
-                if (uf.same(a, b)) {
+                if (uf.same(coord[a], coord[b])) {
                     possible = false;
                     break;
                 }
             }
         }
         
-        cout << (possible ? "YES" : "NO") << "\n";
+        printf("%s\n", possible ? "YES" : "NO");
     }
     
     return 0;
