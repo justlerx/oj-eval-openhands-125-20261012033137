@@ -7,25 +7,16 @@ using namespace std;
 
 class UnionFind {
 private:
-    vector<int> parent;
-    vector<int> rank;
+    unordered_map<int, int> parent;
+    unordered_map<int, int> rank;
     
 public:
-    UnionFind() {}
-    
-    void ensure_size(int x) {
-        if (x >= parent.size()) {
-            int old_size = parent.size();
-            parent.resize(x + 1);
-            rank.resize(x + 1, 0);
-            for (int i = old_size; i <= x; i++) {
-                parent[i] = i;
-            }
-        }
-    }
-    
     int find(int x) {
-        ensure_size(x);
+        if (parent.find(x) == parent.end()) {
+            parent[x] = x;
+            rank[x] = 0;
+            return x;
+        }
         if (parent[x] != x) {
             parent[x] = find(parent[x]);
         }
@@ -33,8 +24,6 @@ public:
     }
     
     void unite(int x, int y) {
-        ensure_size(x);
-        ensure_size(y);
         x = find(x);
         y = find(y);
         if (x == y) return;
@@ -50,9 +39,12 @@ public:
     }
     
     bool same(int x, int y) {
-        ensure_size(x);
-        ensure_size(y);
         return find(x) == find(y);
+    }
+    
+    void clear() {
+        parent.clear();
+        rank.clear();
     }
 };
 
@@ -70,12 +62,10 @@ int main() {
         vector<pair<pair<int, int>, int>> constraints;
         constraints.reserve(n);
         
-        int max_var = 0;
         for (int i = 0; i < n; i++) {
             int a, b, e;
             cin >> a >> b >> e;
             constraints.push_back({{a, b}, e});
-            max_var = max(max_var, max(a, b));
         }
         
         UnionFind uf;
